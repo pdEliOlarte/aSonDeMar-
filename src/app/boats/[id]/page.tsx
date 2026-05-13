@@ -1,98 +1,97 @@
-import { supabase } from '@/lib/supabase'
+import { getBoatById } from '@/Services/boatService'
 import { notFound } from 'next/navigation'
 import BookingForm from '@/components/bookingForms'
-/*export default async function BoatDetail({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
-})
-*/
 
-export const dynamic = 'force-dynamic' // <--- Línea clave
+export const dynamic = 'force-dynamic'
+
 export default async function BoatDetail({ params }: { params: Promise<{ id: string }> }) {
-  // 1. Traemos los datos del bote específico desde Supabase
   const { id } = await params
-  const { data: boat, error } = await supabase
-    .from('boats')
-    .select('*')
-    .eq('id', id)
-    .single()
+  const boat = await getBoatById(id)
 
-  if (error || !boat) return notFound()
+  if (!boat) return notFound()
+
+  const images = boat.gallery || []
+  
+  console.log('🖼️ Total de imágenes en la galería:', images.length);
+  console.log('📋 Estructura de imágenes:', images);
+  
+  // 1. Identificamos la foto principal
+  const mainImage = images.find((img: any) => img.is_main)?.img_url || images[0]?.img_url || boat.image_url
+  
+  // 2. Filtramos el resto de imágenes, quitando la principal
+  const otherImages = images.filter((img: any) => img.img_url !== mainImage).slice(0, 4)
+  
+  console.log('🎯 Foto principal:', mainImage);
+  console.log('🎨 Otras fotos:', otherImages.length);
 
   return (
-    <main className="max-w-6xl mx-auto p-6 md:p-12">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        
-        {/* COLUMNA IZQUIERDA: Info del Bote */}
-        <div className="lg:col-span-2">
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{boat.name}</h1>
-          <div className="flex gap-4 mb-6 text-sm font-medium text-blue-600">
-            <span>⚓ {boat.boat_type || 'Embarcación'}</span>
-            <span>👥 Capacidad: {boat.capacity} personas</span>
-          </div>
-          <div className="h-48 w-full relative overflow-hidden">
-              {boat.image_url ? (
-              <img 
-              src={boat.image_url} 
-              alt={boat.name} 
-          className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"/>
-  ) : (
-    <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">
-      Sin imagen
-    </div>
-  )}
-</div>
-          <div className="aspect-video bg-slate-200 rounded-3xl mb-8 flex items-center justify-center text-slate-400 overflow-hidden shadow-inner">
-            {/* Aquí conectaremos el Storage de fotos pronto */}
-            p
+    <main className="max-w-7xl mx-auto p-4 md:p-8">
+      {/* Título */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-slate-900">{boat.name}</h1>
+        <p className="text-slate-600">⚓ {boat.boat_type} en Cartagena • 👥 {boat.capacity} personas</p>
+      </div>
+
+      {/* GALERÍA DINÁMICA MEJORADA */}
+      {images.length > 0 ? (
+        <div className={`grid gap-2 overflow-hidden mb-8 rounded-2xl ${
+          otherImages.length > 0 ? 'h-[300px] md:h-[450px] grid-cols-1 md:grid-cols-4 grid-rows-2' : 'h-[250px] md:h-[300px] place-items-center'
+        }`}>
+          {/* Foto Principal: Ocupa 2x2 si hay más fotos, sino ocupe todo */}
+          <div className={`${otherImages.length > 0 ? 'md:col-span-2 md:row-span-2' : 'col-span-1 w-full h-full max-h-[80vh]'} relative bg-slate-200`}>
+            {mainImage ? (
+              <img src={mainImage} className={`w-full h-full ${otherImages.length > 0 ? 'object-contain' : 'object-contain'} hover:opacity-95 transition cursor-pointer`} alt="Principal" />
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-400">Sin foto</div>
+            )}
           </div>
 
+          {/* Fotos Secundarias (4 espacios, solo si existen) */}
+          {otherImages.map((img: any, index: number) => (
+            <div key={img.id} className="hidden md:block bg-slate-100 relative">
+              <img src={img.img_url} className="w-full h-full object-cover hover:opacity-95 transition cursor-pointer" alt={`Galería ${index}`} />
+            </div>
+          ))}
+
+          {/* NO MOSTRAR RELLENO: He borrado los cuadros grises de "Próximamente" para un diseño más limpio */}
+        </div>
+      ) : (
+        <div className="h-[300px] md:h-[450px] bg-slate-100 rounded-2xl mb-8 flex items-center justify-center text-slate-400 border border-slate-200">
+          <div className="text-center">
+            <span className="text-4xl">📸</span>
+            <p className="mt-2 text-sm font-bold uppercase tracking-widest">Sin galería de fotos</p>
+          </div>
+        </div>
+      )}
+
+      {/* Resto de la página (descripción y formulario) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2">
           <h3 className="text-2xl font-bold text-slate-800 mb-4">Sobre esta experiencia</h3>
-          <p className="text-slate-600 leading-relaxed text-lg mb-8">
-            {boat.description}
-          </p>
+          <p className="text-slate-600 leading-relaxed text-lg mb-8">{boat.description}</p>
           
-          <div className="grid grid-cols-2 gap-4 border-t pt-8">
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <span className="block text-xs uppercase tracking-wider text-slate-400 font-bold">Precio base</span>
-              <span className="text-2xl font-bold text-blue-900">${boat.base_price} / día</span>
+          <div className="border-t pt-8">
+            <h4 className="font-bold mb-4 text-slate-400 uppercase text-xs tracking-widest">Características</h4>
+            <div className="flex flex-wrap gap-2">
+              {boat.features?.map((f: string) => (
+                <span key={f} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-sm">
+                  ✓ {f}
+                </span>
+              ))}
             </div>
           </div>
         </div>
-        
-        {/* COLUMNA DERECHA: Formulario de Reserva (Sticky) */}
+
         <div className="lg:col-span-1">
-          <div className="sticky top-24 bg-white border border-slate-100 shadow-2xl p-8 rounded-3xl">
-            <h4 className="text-xl font-bold mb-6 text-slate-800">Solicitar Reserva</h4>
+          <div className="sticky top-24 bg-white border border-slate-200 shadow-xl p-8 rounded-3xl">
+            <div className="mb-6">
+              <span className="text-3xl font-bold text-slate-900">${boat.base_price}</span>
+              <span className="text-slate-500"> / día</span>
+            </div>
             <BookingForm boatId={id} />
-             
-            <p className="text-[10px] text-center text-slate-400 mt-4 px-4 uppercase">
-              No se te cobrará nada aún. Un asesor te contactará para confirmar.
-            </p>
           </div>
         </div>
       </div>
     </main>
   )
 }
-
-/**
- <form className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase">Nombre Completo</label>
-                <input type="text" className="w-full p-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="Ej: Juan Pérez" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase">WhatsApp / Celular</label>
-                <input type="tel" className="w-full p-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="+57 ..." />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase">Fecha deseada</label>
-                <input type="date" className="w-full p-3 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-blue-500" />
-              </div>
-              <button type="button" className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg shadow-blue-200">
-                Enviar Solicitud
-              </button>
-            </form>
- */
