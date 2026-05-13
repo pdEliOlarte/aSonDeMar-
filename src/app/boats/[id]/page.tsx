@@ -7,6 +7,8 @@ import BookingForm from '@/components/bookingForms'
   params: Promise<{ id: string }> 
 })
 */
+
+export const dynamic = 'force-dynamic' // <--- Línea clave
 export default async function BoatDetail({ params }: { params: Promise<{ id: string }> }) {
   // 1. Traemos los datos del bote específico desde Supabase
   const { id } = await params
@@ -43,7 +45,7 @@ export default async function BoatDetail({ params }: { params: Promise<{ id: str
 </div>
           <div className="aspect-video bg-slate-200 rounded-3xl mb-8 flex items-center justify-center text-slate-400 overflow-hidden shadow-inner">
             {/* Aquí conectaremos el Storage de fotos pronto */}
-            <p className="text-lg italic font-serif">Galería de imágenes en construcción...</p>
+            p
           </div>
 
           <h3 className="text-2xl font-bold text-slate-800 mb-4">Sobre esta experiencia</h3>

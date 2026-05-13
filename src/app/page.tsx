@@ -1,56 +1,81 @@
-import { getBoats } from '@/Services/boatService'
-import Link from 'next/link'
-export default async function Home() {
-  const boats = await getBoats()
+import { getBoatById } from '@/Services/boatService'
+import { notFound } from 'next/navigation'
+import BookingForm from '@/components/bookingForms'
+
+export const dynamic = 'force-dynamic'
+
+export default async function BoatDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const boat = await getBoatById(id)
+
+  if (!boat) return notFound()
+
+  // Separamos la foto principal de las demás
+  const mainImage = boat.gallery?.find((img: any) => img.is_main)?.img_url || boat.gallery[0]?.img_url
+  const otherImages = boat.gallery?.filter((img: any) => img.img_url !== mainImage).slice(0, 4)
 
   return (
-    <main className="p-8 bg-slate-50 min-h-screen">
-      <header className="mb-12 text-center">
-        <h1 className="text-4xl font-extrabold text-blue-900">⚓ A SonDeMar boats hospitalily</h1>
-        <p className="text-slate-600 mt-2">Explora las mejores experiencias náuticas</p>
-      </header>
+    <main className="max-w-7xl mx-auto p-4 md:p-8">
+      {/* Título y Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-slate-900">{boat.name}</h1>
+        <p className="text-slate-600">⚓ {boat.boat_type} en Cartagena • 👥 {boat.capacity} personas</p>
+      </div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {boats?.map((boat) => (
-          <div key={boat.id} className="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100 hover:shadow-xl transition">
-            <div className="h-48 w-full relative overflow-hidden">
-  {boat.image_url ? (
-    <img 
-      src={boat.image_url} 
-      alt={boat.name} 
-      className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
-    />
-  ) : (
-    <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-400">
-      Sin imagen
-    </div>
-  )}
-</div>
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-slate-800">{boat.name}</h2>
-              <p className="text-slate-500 text-sm mt-1 line-clamp-2">{boat.description}</p>
-              <div className="mt-4 flex justify-between items-center">
-                <span className="text-blue-600 font-bold">${boat.base_price} / día</span>
-                <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">
-                  Cap: {boat.capacity} pers.
-                </span>
-              </div>
-              <Link href={`/boats/${boat.id}`} className="block w-full">
-              <button className="w-full mt-6 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
-                Ver detalles
-              </button>
-              </Link>
-            </div>
+      {/* GALERÍA ESTILO AIRBNB */}
+      <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[450px] rounded-2xl overflow-hidden mb-8">
+        {/* Foto Principal (Ocupa 2x2) */}
+        <div className="md:col-span-2 md:row-span-2 relative bg-slate-200">
+          {mainImage ? (
+            <img src={mainImage} className="w-full h-full object-cover hover:opacity-90 transition cursor-pointer" alt="Principal" />
+          ) : (
+            <div className="flex items-center justify-center h-full text-slate-400">Sin foto</div>
+          )}
+        </div>
+
+        {/* Fotos Secundarias (4 espacios) */}
+        {otherImages?.map((img: any, index: number) => (
+          <div key={img.id} className="hidden md:block bg-slate-200 relative">
+            <img src={img.img_url} className="w-full h-full object-cover hover:opacity-90 transition cursor-pointer" alt={`Gallery ${index}`} />
+          </div>
+        ))}
+        
+        {/* Relleno si faltan fotos */}
+        {(!otherImages || otherImages.length < 4) && Array.from({ length: 4 - (otherImages?.length || 0) }).map((_, i) => (
+          <div key={i} className="hidden md:flex items-center justify-center bg-slate-100 text-slate-300 text-xs uppercase font-bold">
+            Próximamente
           </div>
         ))}
       </div>
 
-      {boats?.length === 0 && (
-        <div className="text-center p-20 border-2 border-dashed rounded-3xl border-slate-200">
-          <p className="text-slate-400">Aún no hay botes registrados en la base de datos.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2">
+          <h3 className="text-2xl font-bold text-slate-800 mb-4">Descripción</h3>
+          <p className="text-slate-600 leading-relaxed text-lg mb-8">{boat.description}</p>
+          
+          <div className="border-t pt-8">
+            <h4 className="font-bold mb-4">Características</h4>
+            <div className="flex flex-wrap gap-2">
+              {boat.features?.map((f: string) => (
+                <span key={f} className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                  ✓ {f}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Formulario Sticky */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-24 bg-white border border-slate-200 shadow-xl p-8 rounded-3xl">
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-2xl font-bold text-slate-900">${boat.base_price}</span>
+              <span className="text-slate-500">/ día</span>
+            </div>
+            <BookingForm boatId={id} />
+          </div>
+        </div>
+      </div>
     </main>
   )
-  
 }

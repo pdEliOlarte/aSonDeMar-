@@ -1,13 +1,15 @@
 import { supabase } from '@/lib/supabase'
 
-export const getBoats = async () => {
+export const getBoatById = async (id: string) => {
   const { data, error } = await supabase
-    .from('boats') // Asegúrate de que tu tabla se llame 'boats'
-    .select('*')
-  
-  if (error) {
-    console.error('Error al traer botes:', error)
-    return []
-  }
+    .from('boats')
+    .select(`
+      *,
+      gallery (*) 
+    `) // Esto trae el barco y todas sus filas en la tabla gallery
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
   return data
 }
