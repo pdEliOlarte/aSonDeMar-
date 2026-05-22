@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createLead } from '@/Services/bookingService'
+import { set } from 'sanity'
 
 export default function BookingForm({ boatId }: { boatId: string }) {
   const [loading, setLoading] = useState(false)
@@ -22,8 +23,16 @@ export default function BookingForm({ boatId }: { boatId: string }) {
         event_date: formData.get('event_date') as string,
         event_time: formData.get('event_time') as string,
         pax: Number(formData.get('pax')),
+        status: 'pending'
       })
+      const message = `Hola, quisiera reservar el bote *${formData.get('boat_name')}* para el *${formData.get('event_date')} a las ${formData.get('event_time')}*.
+    Mi nombre: ${formData.get('customer_name')}, Tel: ${formData.get('customer_phone')}. Pax: ${formData.get('pax')}. ¿Pueden confirmar disponibilidad?`;
+    const whatsappUrl = `https://wa.me/573332394107?text=${encodeURIComponent(message)}`; // Cambia el número
+    
       setSent(true)
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank')
+      }, 1500)
     } catch (err) {
       alert("Hubo un error al enviar tus datos. Revisa la consola.")
     } finally {
