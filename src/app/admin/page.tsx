@@ -8,7 +8,7 @@ export default function AdminPage() {
     const [password, setPassword] = useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+    const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
     useEffect(() => {
         if (isAuthenticated) {
             getLeads().then((data:any) => setLeads(data)).catch((err:any) => console.error(err))
