@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Link from "next/link"; // Importante para navegar sin recargar la página
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,6 +41,7 @@ export default function RootLayout({
         <footer className="py-10 text-center border-t border-slate-100 text-slate-400 text-sm">
           © {new Date().getFullYear()} aSonDeMar - Todos los derechos reservados.
         </footer>
+        <Analytics />
       </body>
     </html>
   );
