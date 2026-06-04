@@ -1,5 +1,46 @@
-import { PortableText } from '@portabletext/react'
 import { client, urlFor } from '../../lib/sanity'
+
+function renderBlockContent(blocks: any[] = []) {
+  return blocks.map((block, index) => {
+    if (block?._type !== 'block' || !block.children) return null
+
+    const text = block.children.map((child: any) => child.text || '').join('')
+    const style = block.style || 'normal'
+
+    switch (style) {
+      case 'h1':
+        return (
+          <h1 key={index} className="text-4xl font-bold mb-4">
+            {text}
+          </h1>
+        )
+      case 'h2':
+        return (
+          <h2 key={index} className="text-3xl font-bold mb-4">
+            {text}
+          </h2>
+        )
+      case 'h3':
+        return (
+          <h3 key={index} className="text-2xl font-bold mb-4">
+            {text}
+          </h3>
+        )
+      case 'blockquote':
+        return (
+          <blockquote key={index} className="border-l-4 border-slate-300 pl-4 italic text-slate-700 mb-4">
+            {text}
+          </blockquote>
+        )
+      default:
+        return (
+          <p key={index} className="text-slate-600 leading-relaxed mb-4">
+            {text}
+          </p>
+        )
+    }
+  })
+}
 
 export default async function AboutPage() {
   const query = `*[_type == "aboutPage"][0]{
@@ -57,7 +98,7 @@ export default async function AboutPage() {
           <div>
             <h2 className="text-3xl font-bold text-slate-800 mb-6">{data.historyTitle || '¿Qué es aSonDeMar?'}</h2>
             {data.historyText && <p className="text-slate-600 leading-relaxed mb-4">{data.historyText}</p>}
-            {data.historyRich && <div className="text-slate-600 leading-relaxed mb-4"><PortableText value={data.historyRich} /></div>}
+            {data.historyRich && <div className="mb-4">{renderBlockContent(data.historyRich)}</div>}
           </div>
           <div className="bg-slate-100 h-80 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center text-slate-400">
             {data.historyImage ? (
