@@ -1,4 +1,5 @@
-import { client, urlFor } from '../../lib/sanity'
+import { client } from '../../sanity/lib/client'
+import { urlFor } from '../../sanity/lib/image'
 
 function renderBlockContent(blocks: any[] = []) {
   return blocks.map((block, index) => {
@@ -96,7 +97,7 @@ export default async function AboutPage() {
       <section className="py-20 px-6 max-w-5xl mx-auto">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl font-bold text-slate-800 mb-6">{data.historyTitle || '¿Qué es aSonDeMar?'}</h2>
+            <h2 className="text-3xl font-bold text-slate-800 mb-6">{data.historyTitle || '¿Qué es cartagena boats hospitality?'}</h2>
             {data.historyText && <p className="text-slate-600 leading-relaxed mb-4">{data.historyText}</p>}
             {data.historyRich && <div className="mb-4">{renderBlockContent(data.historyRich)}</div>}
           </div>

@@ -35,7 +35,7 @@ export default function AdminPage() {
         try {
             const doc = new jsPDF()
             doc.setFontSize(18)
-            doc.text('Contrato de Reserva - aSonDeMar', 20, 30)
+            doc.text('Contrato de Reserva - cartagena boats hospitality', 20, 30)
             doc.setFontSize(12)
             doc.text(`Lead ID: ${lead.id}`, 20, 50)
             doc.text(`Nombre: ${lead.customer_name || lead.customer_name}`, 20, 60)
@@ -44,7 +44,7 @@ export default function AdminPage() {
             doc.text(`Fecha: ${lead.event_date || ''} ${lead.event_time || ''}`, 20, 90)
             doc.text(`Personas (Pax): ${lead.pax || ''}`, 20, 100)
             doc.text(`Barco: ${lead.boat?.name || ''}`, 20, 110)
-            doc.text('Gracias por confiar en aSonDeMar.', 20, 140)
+            doc.text('Gracias por confiar en cartagena boats hospitality.', 20, 140)
             doc.save(`contract_${lead.id}.pdf`)
         } catch (err) {
             console.error('Error generating contract PDF:', err)
